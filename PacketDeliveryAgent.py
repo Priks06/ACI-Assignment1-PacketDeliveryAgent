@@ -1,5 +1,6 @@
 import random
 import string
+import math
 w1 = [1] * 15
 w2 = [2] * 5
 w3 = [4] * 7
@@ -85,6 +86,13 @@ while (len(num)>=0):                                     # loop till all packed 
 
 print("Remaining storage space")
 print(roomDict)
+
+# Compute the objective function as x = Log(commutes) + Log(No of rooms visited) + Log(Remaining storage space)
+totalRemainingStorageSpace = 0
+for currRoomSpace in roomDict.values():
+    totalRemainingStorageSpace = totalRemainingStorageSpace + currRoomSpace
+objectiveFunction = math.log2(commute) + math.log2(len(set(visitedRooms))) + math.log2(totalRemainingStorageSpace)
+print("Objective function value is : " + str(objectiveFunction))
 
 def findVisitedRoomWithEnoughStorageSpace(packetSize, visitedRooms):
     for room in set(visitedRooms):
