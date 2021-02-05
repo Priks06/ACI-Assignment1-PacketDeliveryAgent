@@ -122,7 +122,6 @@ if __name__ == "__main__":
     plt.plot(serialNumbers, objectiveFunctionValues)
     plt.xlabel("Order")
     plt.ylabel("Running Time (secs)")
-    plt.title("Transitive Closure (Warshalls vs Naive)")
+    plt.title("Number of Commutes")
 
     plt.show()
-
