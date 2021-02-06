@@ -54,7 +54,7 @@ def generateRandomPacketCombo():
 
         packet=packet+secondPacket                           #Combine first selected packet and remaining packet selection
 
-        print("packet"+str(commute), packet)
+        # print("packet"+str(commute), packet)
         packetCombo.update({"combo"+str(commute): packet})
         commute+=1
 
@@ -68,9 +68,9 @@ def generateRandomPacketCombo():
 def placePacketComboInRooms(packetCombo):
     roomDict = roomDictOrig.copy()
     for combo,packet1 in packetCombo.items():
-        print (combo, packet1)
-        print("Remaining storage space")
-        print(roomDict)
+        # print (combo, packet1)
+        # print("Remaining storage space")
+        # print(roomDict)
         currentRandomRoomList = list(roomDict.keys())
         randomRoom = random.choice(currentRandomRoomList)
         currentRandomRoomList.remove(randomRoom)
@@ -81,7 +81,7 @@ def placePacketComboInRooms(packetCombo):
             randomRoom = random.choice(currentRandomRoomList)
             currentRandomRoomList.remove(randomRoom)
             remainingStorageCapacity = roomDict[randomRoom]
-            print("Random room selected: " + randomRoom + " for combo: " + combo)
+            # print("Random room selected: " + randomRoom + " for combo: " + combo)
             # If list is empty it means our initial packet combo selection is incorrect
             if (len(currentRandomRoomList) == 0 and remainingStorageCapacity < sum(packet1)):
                 # packetCombo = generateRandomPacketCombo()
@@ -113,23 +113,62 @@ def placePacketComboInRooms(packetCombo):
                 #             isPacketStored = True
                 #             packetStoredInRoom = optionalAvailableRoom
 
-            if (isPacketStored):
+            # if (isPacketStored):
                 # print (pack)
                 # num.remove(pack)                                 # Remove selected list of packets from original packet set in avoid repeated selection of same packets/boxes
 
-                print("Packet " + str(pack) + " stored in room " + packetStoredInRoom)
+                # print("Packet " + str(pack) + " stored in room " + packetStoredInRoom)
 
                 # print (packet1)
     return True, roomDict
 
 
+# Evaluation function
+def evaluate(currentRoomDict):
+    # objective function calculation = sum of (remaining space/total room space) of utilized and difference of (unutilized room/total storage space of warehouse) of unutilzed
+    objectiveFunction = 0
+    for room in currentRoomDict:
+        # This means room is utilized
+        currRoomCapacity = currentRoomDict[room]
+        origRoomCapacity = roomDictOrig[room]
+        if (currRoomCapacity < origRoomCapacity):
+            objectiveFunction = objectiveFunction + currRoomCapacity/origRoomCapacity
+        # This means the room is unutilized i.e. empty, add negation 1/156
+        else:
+            objectiveFunction = objectiveFunction - 1/156
+    return objectiveFunction
+
+
 # Select an initial random room first
 # randomRoom, remainingStorageCapacity = random.choice(list(roomDict.items()))
 isSolutionAchieved = False
+finalPacketCombo = {}
+baseSolution = {}
 while (not isSolutionAchieved):
-    packetCombo = generateRandomPacketCombo()
-    isSolutionAchieved, roomDict = placePacketComboInRooms(packetCombo)
+    finalPacketCombo = generateRandomPacketCombo()
+    isSolutionAchieved, baseSolution = placePacketComboInRooms(finalPacketCombo)
     print ("Is solution acheived" + str(isSolutionAchieved))
 
-print("Remaining storage space")
-print(roomDict)
+bestScore = evaluate(baseSolution)
+print("Base Score so far", bestScore, 'Base Solution', baseSolution)
+bestSolution = baseSolution
+for i in range (0,1000):
+    print("Best Score so far", bestScore, 'Solution', bestSolution)
+    if bestScore == 0:
+        break
+
+    isSolutionAchieved, newSolution = placePacketComboInRooms(finalPacketCombo)
+
+    if (not isSolutionAchieved):
+        print("Edge case reached. Skipping")
+        continue
+    score = evaluate(newSolution)
+    if score < bestScore:
+        print("Better solution found")
+        bestSolution = newSolution
+        bestScore = score
+
+print("Best Score found", bestScore, 'Best Solution', bestSolution)
+
+# print("Remaining storage space")
+# print(roomDictOrig)
