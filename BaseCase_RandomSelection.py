@@ -10,7 +10,7 @@ w6 = [7] * 2
 w7 = [9] * 4
 num=w1+w2+w3+w4+w5+w6+w7
 
-roomDict = {
+roomDictOrig = {
     "A" : 25,
     "B" : 5,
     "C" : 28,
@@ -65,55 +65,71 @@ def generateRandomPacketCombo():
         visited=[]
     return packetCombo
 
-# Select an initial random room first
-# randomRoom, remainingStorageCapacity = random.choice(list(roomDict.items()))
-packetCombo = generateRandomPacketCombo()
-for combo,packet1 in packetCombo.items():
-    print (combo, packet1)
-    print("Remaining storage space")
-    print(roomDict)
-    currentRandomRoomList = list(roomDict.keys())
-    randomRoom = random.choice(currentRandomRoomList)
-    currentRandomRoomList.remove(randomRoom)
-    remainingStorageCapacity = roomDict[randomRoom]
-    # randomRoom, remainingStorageCapacity = random.choice(list(roomDict.items()))
-    while (remainingStorageCapacity < sum(packet1)):
-        # randomRoom, remainingStorageCapacity = random.choice(list(roomDict.items()))
+def placePacketComboInRooms(packetCombo):
+    roomDict = roomDictOrig.copy()
+    for combo,packet1 in packetCombo.items():
+        print (combo, packet1)
+        print("Remaining storage space")
+        print(roomDict)
+        currentRandomRoomList = list(roomDict.keys())
         randomRoom = random.choice(currentRandomRoomList)
         currentRandomRoomList.remove(randomRoom)
         remainingStorageCapacity = roomDict[randomRoom]
-        print("Random room selected: " + randomRoom + " for combo: " + combo)
-    for pack in packet1:
-        isPacketStored = False
-        packetStoredInRoom = None
-        while(not isPacketStored):
+        # randomRoom, remainingStorageCapacity = random.choice(list(roomDict.items()))
+        while (remainingStorageCapacity < sum(packet1)):
+            # randomRoom, remainingStorageCapacity = random.choice(list(roomDict.items()))
+            randomRoom = random.choice(currentRandomRoomList)
+            currentRandomRoomList.remove(randomRoom)
+            remainingStorageCapacity = roomDict[randomRoom]
+            print("Random room selected: " + randomRoom + " for combo: " + combo)
+            # If list is empty it means our initial packet combo selection is incorrect
+            if (len(currentRandomRoomList) == 0 and remainingStorageCapacity < sum(packet1)):
+                # packetCombo = generateRandomPacketCombo()
+                # break
+                print("Initial packet combo is WRONG!!!")
+                return False, None
+        for pack in packet1:
+            isPacketStored = False
+            packetStoredInRoom = None
+            while(not isPacketStored):
 
-            if (pack <= roomDict[randomRoom]):               # Check if the current packet can be placed in the randomly selected room
-                roomDict[randomRoom] = roomDict[randomRoom] - pack
-                isPacketStored = True
-                packetStoredInRoom = randomRoom
-                # visitedRooms.append(randomRoom)
-                break
-            # else:
-            #     # First check if there is any suitable storage space available in the already visited rooms, if yes then use that room, if no then find a new random room
-            #     if (len(visitedRooms) > 0):
-            #         optionalAvailableRoom = None
-            #         for room in set(visitedRooms):
-            #             if (pack <= roomDict[room]):
-            #                 optionalAvailableRoom = room
-            #                 break
-            #         #optionalAvailableRoom = findVisitedRoomWithEnoughStorageSpace(pack, visitedRooms)
-            #         if (optionalAvailableRoom != None):
-            #             roomDict[optionalAvailableRoom] = roomDict[optionalAvailableRoom] - pack
-            #             isPacketStored = True
-            #             packetStoredInRoom = optionalAvailableRoom
+                if (pack <= roomDict[randomRoom]):               # Check if the current packet can be placed in the randomly selected room
+                    roomDict[randomRoom] = roomDict[randomRoom] - pack
+                    isPacketStored = True
+                    packetStoredInRoom = randomRoom
+                    # visitedRooms.append(randomRoom)
+                    break
+                # else:
+                #     # First check if there is any suitable storage space available in the already visited rooms, if yes then use that room, if no then find a new random room
+                #     if (len(visitedRooms) > 0):
+                #         optionalAvailableRoom = None
+                #         for room in set(visitedRooms):
+                #             if (pack <= roomDict[room]):
+                #                 optionalAvailableRoom = room
+                #                 break
+                #         #optionalAvailableRoom = findVisitedRoomWithEnoughStorageSpace(pack, visitedRooms)
+                #         if (optionalAvailableRoom != None):
+                #             roomDict[optionalAvailableRoom] = roomDict[optionalAvailableRoom] - pack
+                #             isPacketStored = True
+                #             packetStoredInRoom = optionalAvailableRoom
 
-        if (isPacketStored):
-            # print (pack)
-            # num.remove(pack)                                 # Remove selected list of packets from original packet set in avoid repeated selection of same packets/boxes
+            if (isPacketStored):
+                # print (pack)
+                # num.remove(pack)                                 # Remove selected list of packets from original packet set in avoid repeated selection of same packets/boxes
 
-            print("Packet " + str(pack) + " stored in room " + packetStoredInRoom)
+                print("Packet " + str(pack) + " stored in room " + packetStoredInRoom)
 
-            # print (packet1)
+                # print (packet1)
+    return True, roomDict
+
+
+# Select an initial random room first
+# randomRoom, remainingStorageCapacity = random.choice(list(roomDict.items()))
+isSolutionAchieved = False
+while (not isSolutionAchieved):
+    packetCombo = generateRandomPacketCombo()
+    isSolutionAchieved, roomDict = placePacketComboInRooms(packetCombo)
+    print ("Is solution acheived" + str(isSolutionAchieved))
+
 print("Remaining storage space")
 print(roomDict)
