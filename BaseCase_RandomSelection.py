@@ -54,7 +54,7 @@ def generateRandomPacketCombo():
 
         packet=packet+secondPacket                           #Combine first selected packet and remaining packet selection
 
-        # print("packet"+str(commute), packet)
+        print("packet"+str(commute), packet)
         packetCombo.update({"combo"+str(commute): packet})
         commute+=1
 
@@ -133,9 +133,10 @@ def evaluate(currentRoomDict):
         origRoomCapacity = roomDictOrig[room]
         if (currRoomCapacity < origRoomCapacity):
             objectiveFunction = objectiveFunction + currRoomCapacity/origRoomCapacity
-        # This means the room is unutilized i.e. empty, add negation 1/156
+        # This means the room is unutilized i.e. empty, add negation of (total room capacity/sum of all room capacities)
+        # i.e.  r/156, where r=room capacity of unutilized room
         else:
-            objectiveFunction = objectiveFunction - 1/156
+            objectiveFunction = objectiveFunction - (origRoomCapacity/156)
     return objectiveFunction
 
 
