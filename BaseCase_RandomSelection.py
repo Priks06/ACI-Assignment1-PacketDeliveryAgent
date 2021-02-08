@@ -1,6 +1,5 @@
 import random
 import string
-import pprint
 
 w1 = [1] * 15
 w2 = [2] * 5
@@ -138,22 +137,47 @@ def findOutUnutilizedRooms(currentRoomDict, isUtilized):
 # Evaluation function
 def evaluate(currentRoomDict):
     # Calculate total number of unused rooms
-    unusedRoomsCount = len(findOutUnutilizedRooms(currentRoomDict, False))
+    unusedRooms = findOutUnutilizedRooms(currentRoomDict, False)
+    unusedRoomsCapacityList = [currentRoomDict[room] for room in unusedRooms]
+    # print(unusedRoomsCapacityList)
+    usedRooms = findOutUnutilizedRooms(currentRoomDict, True)
+    usedRoomsCapacityList = [currentRoomDict[room] for room in usedRooms]
+    # print(usedRoomsCapacityList)
     # print("Unused rooms count : " + str(unusedRoomsCount))
 
     # objective function calculation = sum of (remaining space/total room space) of utilized and difference of (unutilized room/total storage space of warehouse) of unutilzed
     objectiveFunction = 0
-    for room in currentRoomDict:
-        # This means room is utilized
-        currRoomCapacity = currentRoomDict[room]
-        origRoomCapacity = roomDictOrig[room]
-        if (currRoomCapacity < origRoomCapacity):
-            objectiveFunction = objectiveFunction + currRoomCapacity/origRoomCapacity
-        # This means the room is unutilized i.e. empty, add negation of (1/total unutilized rooms)
-        # i.e.  1/r, where r = no of unutilized rooms
-        else:
-            # objectiveFunction = objectiveFunction - (origRoomCapacity/totalCapacityOfAllRooms)
-            objectiveFunction = objectiveFunction - (1/unusedRoomsCount)
+    # for room in currentRoomDict:
+    #     # This means room is utilized
+    #     currRoomCapacity = currentRoomDict[room]
+    #     origRoomCapacity = roomDictOrig[room]
+    #     if (currRoomCapacity < origRoomCapacity):
+    #         objectiveFunction = objectiveFunction + currRoomCapacity/origRoomCapacity
+    #     # This means the room is unutilized i.e. empty, add negation of (1/total unutilized rooms)
+    #     # i.e.  1/r, where r = no of unutilized rooms
+    #     else:
+    #         # objectiveFunction = objectiveFunction - (origRoomCapacity/totalCapacityOfAllRooms)
+    #         # objectiveFunction = objectiveFunction - (1/unusedRoomsCount)
+    # Calculate max and min of utililized list
+    if (len(usedRoomsCapacityList) > 0):
+        minUsed = min(usedRoomsCapacityList)
+        maxUsed = max(usedRoomsCapacityList)
+    if (len(unusedRoomsCapacityList) > 0):
+        minUnused = min(unusedRoomsCapacityList)
+        maxUnused = max(unusedRoomsCapacityList)
+
+    print(minUsed, maxUsed,minUnused, maxUnused)
+
+    if (maxUsed != 0):
+        for roomCap in usedRoomsCapacityList:
+            normalizedValue = (roomCap - minUsed)/(maxUsed - minUsed)
+            objectiveFunction += normalizedValue
+
+    if (maxUnused != 0):
+        for roomCap in unusedRoomsCapacityList:
+            normalizedValue = (roomCap - minUnused)/(maxUnused - minUnused)
+            objectiveFunction -= normalizedValue
+
     return objectiveFunction
 
 
@@ -201,14 +225,14 @@ for i in range (0,100):
 
 print("Best Score found", finalBestScore, 'Best Solution', finalBestSolution)
 
-print("****************SOLUTION BEGIN********************")
-print("Number of Commutes: ")
+print("\n****************SOLUTION BEGIN********************")
+print("\nNumber of Commutes: ")
 print(len(list(finalPacketCombo.keys())))
-print("The weight carried by the Robot in each commute: ")
-pprint.pprint(finalPacketCombo)
-print("The number of rooms used to store the contingency: ")
+print("\nThe weight carried by the Robot in each commute: ")
+print(finalPacketCombo)
+print("\nThe number of rooms used to store the contingency: ")
 unutilizedRooms = findOutUnutilizedRooms(finalBestSolution, True)
 print(unutilizedRooms)
-print("Remaining storage capacity in each room: ")
+print("\nRemaining storage capacity in each room: ")
 print(finalBestSolution)
-print("****************SOLUTION END********************")
+print("\n****************SOLUTION END********************")
