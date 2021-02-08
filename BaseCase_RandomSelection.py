@@ -18,6 +18,8 @@ roomDictOrig = {
     "E" : 46,
     "F" : 35
 }
+
+totalCapacityOfAllRooms = sum(roomDictOrig.values())
                                                #Var for counting the commute made by bot
 # packet=[]                                                #Var for storing collection of packets selected by bot for commute
 # visited=[]                                               #Var to recording visited packets
@@ -136,7 +138,7 @@ def evaluate(currentRoomDict):
         # This means the room is unutilized i.e. empty, add negation of (total room capacity/sum of all room capacities)
         # i.e.  r/156, where r=room capacity of unutilized room
         else:
-            objectiveFunction = objectiveFunction - (origRoomCapacity/159)
+            objectiveFunction = objectiveFunction - (origRoomCapacity/totalCapacityOfAllRooms)
     return objectiveFunction
 
 
