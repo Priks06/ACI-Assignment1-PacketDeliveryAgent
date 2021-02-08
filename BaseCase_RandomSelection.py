@@ -8,7 +8,7 @@ w4 = [5] * 2
 w5 = [6] * 3
 w6 = [7] * 2
 w7 = [9] * 4
-num=w1+w2+w3+w4+w5+w6+w7
+origPacketsList = w1+w2+w3+w4+w5+w6+w7
 
 roomDictOrig = {
     "A" : 25,
@@ -33,6 +33,7 @@ def generateRandomPacketCombo():
     secondPacket=[]                                          #Var for recording logic of Remaining - First
     commute=0
     packetCombo = {}
+    num = origPacketsList.copy()
     while (len(num)>=0):                                     # loop till all packed are picked and stored in go-down
 
         tempNum=num.copy()                                   # For inner while loop
@@ -124,9 +125,19 @@ def placePacketComboInRooms(packetCombo):
                 # print (packet1)
     return True, roomDict
 
+def findOutUnutilizedRooms(currentRoomDict):
+    unutilizedRoomsDict = []
+    for room in currentRoomDict:
+        if (currentRoomDict[room] == roomDictOrig[room]):
+            unutilizedRoomsDict.append(room)
+    return unutilizedRoomsDict
 
 # Evaluation function
 def evaluate(currentRoomDict):
+    # Calculate total number of unused rooms
+    unusedRoomsCount = len(findOutUnutilizedRooms(currentRoomDict))
+    # print("Unused rooms count : " + str(unusedRoomsCount))
+    
     # objective function calculation = sum of (remaining space/total room space) of utilized and difference of (unutilized room/total storage space of warehouse) of unutilzed
     objectiveFunction = 0
     for room in currentRoomDict:
@@ -135,43 +146,52 @@ def evaluate(currentRoomDict):
         origRoomCapacity = roomDictOrig[room]
         if (currRoomCapacity < origRoomCapacity):
             objectiveFunction = objectiveFunction + currRoomCapacity/origRoomCapacity
-        # This means the room is unutilized i.e. empty, add negation of (total room capacity/sum of all room capacities)
-        # i.e.  r/156, where r=room capacity of unutilized room
+        # This means the room is unutilized i.e. empty, add negation of (1/total unutilized rooms)
+        # i.e.  1/r, where r = no of unutilized rooms
         else:
-            objectiveFunction = objectiveFunction - (origRoomCapacity/totalCapacityOfAllRooms)
+            # objectiveFunction = objectiveFunction - (origRoomCapacity/totalCapacityOfAllRooms)
+            objectiveFunction = objectiveFunction - (1/unusedRoomsCount)
     return objectiveFunction
 
 
-# Select an initial random room first
-# randomRoom, remainingStorageCapacity = random.choice(list(roomDict.items()))
-isSolutionAchieved = False
-finalPacketCombo = {}
-baseSolution = {}
-while (not isSolutionAchieved):
-    finalPacketCombo = generateRandomPacketCombo()
-    isSolutionAchieved, baseSolution = placePacketComboInRooms(finalPacketCombo)
-    print ("Is solution acheived" + str(isSolutionAchieved))
+# Initialize best score to maximum possible number
+finalBestScore = 999999
+finalBestSolution = {}
 
-bestScore = evaluate(baseSolution)
-print("Base Score so far", bestScore, 'Base Solution', baseSolution)
-bestSolution = baseSolution
-for i in range (0,1000):
-    print("Best Score so far", bestScore, 'Solution', bestSolution)
-    if bestScore == 0:
-        break
+for i in range (0,100):
+    isSolutionAchieved = False
+    finalPacketCombo = {}
+    baseSolution = {}
+    while (not isSolutionAchieved):
+        finalPacketCombo = generateRandomPacketCombo()
+        isSolutionAchieved, baseSolution = placePacketComboInRooms(finalPacketCombo)
+        print ("Is solution acheived" + str(isSolutionAchieved))
 
-    isSolutionAchieved, newSolution = placePacketComboInRooms(finalPacketCombo)
+    bestScore = evaluate(baseSolution)
+    print("Base Score so far", bestScore, 'Base Solution', baseSolution)
+    bestSolution = baseSolution
+    for j in range (0,100):
+        print("Best Score so far", bestScore, 'Solution', bestSolution)
+        if bestScore == 0:
+            break
 
-    if (not isSolutionAchieved):
-        print("Edge case reached. Skipping")
-        continue
-    score = evaluate(newSolution)
-    if score < bestScore:
-        print("Better solution found")
-        bestSolution = newSolution
-        bestScore = score
+        isSolutionAchieved, newSolution = placePacketComboInRooms(finalPacketCombo)
 
-print("Best Score found", bestScore, 'Best Solution', bestSolution)
+        if (not isSolutionAchieved):
+            print("Edge case reached. Skipping")
+            continue
+        score = evaluate(newSolution)
+        if score < bestScore:
+            print("Better solution found")
+            bestSolution = newSolution
+            bestScore = score
 
-# print("Remaining storage space")
-# print(roomDictOrig)
+    print("Best Score found in current selection of initial random packets", bestScore, 'Best Solution', bestSolution)
+
+    # Check if the best score of current iteration is better than the previous iterations, if yes update that as the best solution
+    if (bestScore < finalBestScore):
+        print("Current iteration of random packets has a better solution.")
+        finalBestSolution = bestSolution
+        finalBestScore = bestScore
+
+print("Best Score found", finalBestScore, 'Best Solution', finalBestSolution)
