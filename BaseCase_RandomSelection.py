@@ -1,5 +1,6 @@
 import random
 import string
+import pprint
 
 w1 = [1] * 15
 w2 = [2] * 5
@@ -125,19 +126,21 @@ def placePacketComboInRooms(packetCombo):
                 # print (packet1)
     return True, roomDict
 
-def findOutUnutilizedRooms(currentRoomDict):
+def findOutUnutilizedRooms(currentRoomDict, isUtilized):
     unutilizedRoomsDict = []
     for room in currentRoomDict:
-        if (currentRoomDict[room] == roomDictOrig[room]):
+        if (not isUtilized and currentRoomDict[room] == roomDictOrig[room]):
+            unutilizedRoomsDict.append(room)
+        elif (isUtilized and currentRoomDict[room] < roomDictOrig[room]):
             unutilizedRoomsDict.append(room)
     return unutilizedRoomsDict
 
 # Evaluation function
 def evaluate(currentRoomDict):
     # Calculate total number of unused rooms
-    unusedRoomsCount = len(findOutUnutilizedRooms(currentRoomDict))
+    unusedRoomsCount = len(findOutUnutilizedRooms(currentRoomDict, False))
     # print("Unused rooms count : " + str(unusedRoomsCount))
-    
+
     # objective function calculation = sum of (remaining space/total room space) of utilized and difference of (unutilized room/total storage space of warehouse) of unutilzed
     objectiveFunction = 0
     for room in currentRoomDict:
@@ -157,14 +160,15 @@ def evaluate(currentRoomDict):
 # Initialize best score to maximum possible number
 finalBestScore = 999999
 finalBestSolution = {}
+finalPacketCombo = {}
 
 for i in range (0,100):
     isSolutionAchieved = False
-    finalPacketCombo = {}
+    packetCombo = {}
     baseSolution = {}
     while (not isSolutionAchieved):
-        finalPacketCombo = generateRandomPacketCombo()
-        isSolutionAchieved, baseSolution = placePacketComboInRooms(finalPacketCombo)
+        packetCombo = generateRandomPacketCombo()
+        isSolutionAchieved, baseSolution = placePacketComboInRooms(packetCombo)
         print ("Is solution acheived" + str(isSolutionAchieved))
 
     bestScore = evaluate(baseSolution)
@@ -175,7 +179,7 @@ for i in range (0,100):
         if bestScore == 0:
             break
 
-        isSolutionAchieved, newSolution = placePacketComboInRooms(finalPacketCombo)
+        isSolutionAchieved, newSolution = placePacketComboInRooms(packetCombo)
 
         if (not isSolutionAchieved):
             print("Edge case reached. Skipping")
@@ -193,5 +197,18 @@ for i in range (0,100):
         print("Current iteration of random packets has a better solution.")
         finalBestSolution = bestSolution
         finalBestScore = bestScore
+        finalPacketCombo = packetCombo
 
 print("Best Score found", finalBestScore, 'Best Solution', finalBestSolution)
+
+print("****************SOLUTION BEGIN********************")
+print("Number of Commutes: ")
+print(len(list(finalPacketCombo.keys())))
+print("The weight carried by the Robot in each commute: ")
+pprint.pprint(finalPacketCombo)
+print("The number of rooms used to store the contingency: ")
+unutilizedRooms = findOutUnutilizedRooms(finalBestSolution, True)
+print(unutilizedRooms)
+print("Remaining storage capacity in each room: ")
+print(finalBestSolution)
+print("****************SOLUTION END********************")
