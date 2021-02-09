@@ -1,6 +1,5 @@
 import random
 import string
-import pprint
 
 w1 = [1] * 15
 w2 = [2] * 5
@@ -21,12 +20,6 @@ roomDictOrig = {
 }
 
 totalCapacityOfAllRooms = sum(roomDictOrig.values())
-                                               #Var for counting the commute made by bot
-# packet=[]                                                #Var for storing collection of packets selected by bot for commute
-# visited=[]                                               #Var to recording visited packets
-# secondPacket=[]                                          #Var for recording logic of Remaining - First
-# commute=0
-# packetCombo = {}                                              #Var for counting the commute made by bot
 
 def generateRandomPacketCombo():
     packet=[]                                                #Var for storing collection of packets selected by bot for commute
@@ -58,7 +51,7 @@ def generateRandomPacketCombo():
 
         packet=packet+secondPacket                           #Combine first selected packet and remaining packet selection
 
-        print("packet"+str(commute), packet)
+        # print("packet"+str(commute), packet)
         packetCombo.update({"combo"+str(commute): packet})
         commute+=1
 
@@ -88,42 +81,18 @@ def placePacketComboInRooms(packetCombo):
             # print("Random room selected: " + randomRoom + " for combo: " + combo)
             # If list is empty it means our initial packet combo selection is incorrect
             if (len(currentRandomRoomList) == 0 and remainingStorageCapacity < sum(packet1)):
-                # packetCombo = generateRandomPacketCombo()
-                # break
-                print("Initial packet combo is WRONG!!!")
+                print("Initial packet combo is WRONG!!! No suitable room found for: " + combo)
                 return False, None
+
         for pack in packet1:
             isPacketStored = False
-            packetStoredInRoom = None
             while(not isPacketStored):
 
                 if (pack <= roomDict[randomRoom]):               # Check if the current packet can be placed in the randomly selected room
                     roomDict[randomRoom] = roomDict[randomRoom] - pack
                     isPacketStored = True
-                    packetStoredInRoom = randomRoom
-                    # visitedRooms.append(randomRoom)
                     break
-                # else:
-                #     # First check if there is any suitable storage space available in the already visited rooms, if yes then use that room, if no then find a new random room
-                #     if (len(visitedRooms) > 0):
-                #         optionalAvailableRoom = None
-                #         for room in set(visitedRooms):
-                #             if (pack <= roomDict[room]):
-                #                 optionalAvailableRoom = room
-                #                 break
-                #         #optionalAvailableRoom = findVisitedRoomWithEnoughStorageSpace(pack, visitedRooms)
-                #         if (optionalAvailableRoom != None):
-                #             roomDict[optionalAvailableRoom] = roomDict[optionalAvailableRoom] - pack
-                #             isPacketStored = True
-                #             packetStoredInRoom = optionalAvailableRoom
 
-            # if (isPacketStored):
-                # print (pack)
-                # num.remove(pack)                                 # Remove selected list of packets from original packet set in avoid repeated selection of same packets/boxes
-
-                # print("Packet " + str(pack) + " stored in room " + packetStoredInRoom)
-
-                # print (packet1)
     return True, roomDict
 
 def findOutUnutilizedRooms(currentRoomDict, isUtilized):
@@ -169,13 +138,13 @@ for i in range (0,100):
     while (not isSolutionAchieved):
         packetCombo = generateRandomPacketCombo()
         isSolutionAchieved, baseSolution = placePacketComboInRooms(packetCombo)
-        print ("Is solution acheived" + str(isSolutionAchieved))
+        # print ("Is solution acheived" + str(isSolutionAchieved))
 
     bestScore = evaluate(baseSolution)
-    print("Base Score so far", bestScore, 'Base Solution', baseSolution)
+    # print("Base Score so far", bestScore, 'Base Solution', baseSolution)
     bestSolution = baseSolution
     for j in range (0,100):
-        print("Best Score so far", bestScore, 'Solution', bestSolution)
+        # print("Best Score so far", bestScore, 'Solution', bestSolution)
         if bestScore == 0:
             break
 
@@ -205,7 +174,7 @@ print("\n****************SOLUTION BEGIN********************")
 print("\nNumber of Commutes: ")
 print(len(list(finalPacketCombo.keys())))
 print("\nThe weight carried by the Robot in each commute: ")
-pprint.pprint(finalPacketCombo)
+print(finalPacketCombo)
 print("\nThe number of rooms used to store the contingency: ")
 unutilizedRooms = findOutUnutilizedRooms(finalBestSolution, True)
 print(unutilizedRooms)
