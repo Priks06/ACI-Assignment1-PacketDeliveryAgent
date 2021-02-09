@@ -1,5 +1,7 @@
 import random
 import string
+from sklearn.preprocessing import MinMaxScaler
+import numpy as np
 
 w1 = [1] * 15
 w2 = [2] * 5
@@ -81,7 +83,7 @@ def placePacketComboInRooms(packetCombo):
             # print("Random room selected: " + randomRoom + " for combo: " + combo)
             # If list is empty it means our initial packet combo selection is incorrect
             if (len(currentRandomRoomList) == 0 and remainingStorageCapacity < sum(packet1)):
-                print("Initial packet combo is WRONG!!! No suitable room found for: " + combo)
+                # print("Initial packet combo is WRONG!!! No suitable room found for: " + combo)
                 return False, None
 
         for pack in packet1:
@@ -107,22 +109,39 @@ def findOutUnutilizedRooms(currentRoomDict, isUtilized):
 # Evaluation function
 def evaluate(currentRoomDict):
     # Calculate total number of unused rooms
-    unusedRoomsCount = len(findOutUnutilizedRooms(currentRoomDict, False))
-    # print("Unused rooms count : " + str(unusedRoomsCount))
+    unusedRooms = findOutUnutilizedRooms(currentRoomDict, False)
+    unusedRoomsCapacityList = [currentRoomDict[room] for room in unusedRooms]
+    # print(unusedRoomsCapacityList)
+    usedRooms = findOutUnutilizedRooms(currentRoomDict, True)
+    usedRoomsCapacityList = [currentRoomDict[room] for room in usedRooms]
+    # print(usedRoomsCapacityList)
 
-    # objective function calculation = sum of (remaining space/total room space) of utilized and difference of (unutilized room/total storage space of warehouse) of unutilzed
-    objectiveFunction = 0
-    for room in currentRoomDict:
-        # This means room is utilized
-        currRoomCapacity = currentRoomDict[room]
-        origRoomCapacity = roomDictOrig[room]
-        if (currRoomCapacity < origRoomCapacity):
-            objectiveFunction = objectiveFunction + currRoomCapacity/origRoomCapacity
-        # This means the room is unutilized i.e. empty, add negation of (1/total unutilized rooms)
-        # i.e.  1/r, where r = no of unutilized rooms
-        else:
-            # objectiveFunction = objectiveFunction - (origRoomCapacity/totalCapacityOfAllRooms)
-            objectiveFunction = objectiveFunction - (1/unusedRoomsCount)
+    scaler = MinMaxScaler()
+
+    if (len(usedRoomsCapacityList) > 0):
+        usedRoomsCapacityList=np.array(usedRoomsCapacityList)
+        usedRoomsCapacityList=usedRoomsCapacityList.reshape(-1, 1)
+        normalizedusedRoomsCapacityList = scaler.fit_transform(usedRoomsCapacityList)
+        # print("Used:")
+        # print(normalizedusedRoomsCapacityList)
+
+    if (len(unusedRoomsCapacityList) > 0):
+        unusedRoomsCapacityList=np.array(unusedRoomsCapacityList)
+        unusedRoomsCapacityList=unusedRoomsCapacityList.reshape(-1, 1)
+        normalizedunusedRoomsCapacityList = scaler.fit_transform(unusedRoomsCapacityList)
+        # print("Unused:")
+        # print(normalizedunusedRoomsCapacityList)
+
+    totalUsedRoomCapacityNorm = 0
+    if (len(usedRoomsCapacityList) > 0):
+        totalUsedRoomCapacityNorm = sum(normalizedusedRoomsCapacityList)
+
+    totalUnusedRoomCapacityNorm = 0
+    if (len(unusedRoomsCapacityList) > 0):
+        totalUnusedRoomCapacityNorm = sum(normalizedunusedRoomsCapacityList)
+
+    objectiveFunction = totalUsedRoomCapacityNorm - totalUnusedRoomCapacityNorm
+
     return objectiveFunction
 
 
@@ -151,7 +170,7 @@ for i in range (0,100):
         isSolutionAchieved, newSolution = placePacketComboInRooms(packetCombo)
 
         if (not isSolutionAchieved):
-            print("Edge case reached. Skipping")
+            # print("Edge case reached. Skipping")
             continue
         score = evaluate(newSolution)
         if score < bestScore:
@@ -159,11 +178,11 @@ for i in range (0,100):
             bestSolution = newSolution
             bestScore = score
 
-    print("Best Score found in current selection of initial random packets", bestScore, 'Best Solution', bestSolution)
+    # print("Best Score found in current selection of initial random packets", bestScore, 'Best Solution', bestSolution)
 
     # Check if the best score of current iteration is better than the previous iterations, if yes update that as the best solution
     if (bestScore < finalBestScore):
-        print("Current iteration of random packets has a better solution.")
+        print("Current selection of random packets has a better solution.")
         finalBestSolution = bestSolution
         finalBestScore = bestScore
         finalPacketCombo = packetCombo
@@ -176,7 +195,10 @@ print(len(list(finalPacketCombo.keys())))
 print("\nThe weight carried by the Robot in each commute: ")
 print(finalPacketCombo)
 print("\nThe number of rooms used to store the contingency: ")
-unutilizedRooms = findOutUnutilizedRooms(finalBestSolution, True)
+utilizedRooms = findOutUnutilizedRooms(finalBestSolution, True)
+print(utilizedRooms)
+print("\nThe number of unused rooms: ")
+unutilizedRooms = findOutUnutilizedRooms(finalBestSolution, False)
 print(unutilizedRooms)
 print("\nRemaining storage capacity in each room: ")
 print(finalBestSolution)
