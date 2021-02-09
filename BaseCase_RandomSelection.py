@@ -155,7 +155,7 @@ for i in range (0,100):
             continue
         score = evaluate(newSolution)
         if score < bestScore:
-            print("Better solution found")
+            # print("Better solution found")
             bestSolution = newSolution
             bestScore = score
 
